@@ -14,12 +14,13 @@ import (
 )
 
 const (
-	HTMLFormTime    = "15:04"
-	HTMLFormDate    = "2006-01-02"
-	DBTime          = "15:04:05:000"
-	HTMLTime        = "2006-01-02 15:04"
-	DBDateTime      = "2006-01-02 15:04:05:000"
-	TimeWithSeconds = "15:04:05"
+	HTMLFormTime         = "15:04"
+	HTMLFormDate         = "2006-01-02"
+	HTMLFormDateTime     = "2006-01-02 3:04 PM"
+	DBTime               = "15:04:05:000"
+	HTMLFormDateTime24Hr = "2006-01-02 15:04"
+	DBDateTime           = "2006-01-02 15:04:05:000"
+	TimeWithSeconds      = "15:04:05"
 )
 
 type NullTime struct {
@@ -81,15 +82,15 @@ func (nt *NullTime) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (nt NullTime) GetHTML() string {
+func (nt NullTime) GetHTMLDateTime() string {
 	if nt.Valid {
-		return nt.Time.Format(HTMLTime)
+		return nt.Time.Format(HTMLFormDateTime)
 	}
 	return "N/A"
 }
 
 //This function is used to convert an HTML form value (returned from a create or edit, for instance) to a NullTime.
-//It will first try parse it as a Time, if that does not work it will parse it as a Date.
+//It will first try parse it as a Time, if that does not work it will parse it as a Date, if that doesn't work it will parse it as a datetime
 func NullTimeConverter(b string) reflect.Value {
 	decodedTime := NullTime{}
 	//first check if we have been given a time
@@ -102,6 +103,19 @@ func NullTimeConverter(b string) reflect.Value {
 	}
 	//now check if it was a date
 	v, err = time.Parse(HTMLFormDate, b)
+	if err == nil {
+		decodedTime.Time = v
+		decodedTime.Valid = true
+		return reflect.ValueOf(decodedTime)
+	}
+	//now check if it was a datetime
+	v, err = time.Parse(HTMLFormDateTime, b)
+	if err == nil {
+		decodedTime.Time = v
+		decodedTime.Valid = true
+		return reflect.ValueOf(decodedTime)
+	}
+	v, err = time.Parse(HTMLFormDateTime24Hr, b)
 	if err == nil {
 		decodedTime.Time = v
 		decodedTime.Valid = true
