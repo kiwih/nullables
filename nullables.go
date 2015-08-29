@@ -135,7 +135,7 @@ func (nt *NullString) Scan(value interface{}) error {
 		nt.Valid = false
 		return nil
 	}
-	nt.String, nt.Valid = value.(string), true
+	nt.String, nt.Valid = fmt.Sprintf("%s", value), true
 	return nil
 }
 
