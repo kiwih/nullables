@@ -18,6 +18,7 @@ const (
 	HTMLFormDate         = "2006-01-02"
 	HTMLFormDateTime     = "2006-01-02 3:04 PM"
 	NZHTMLFormDate       = "02-01-2006"
+	NZHTMLFormDateTime   = "02-01-2006 3:04 PM"
 	DBTime               = "15:04:05:000"
 	HTMLFormDateTime24Hr = "2006-01-02 15:04"
 	DBDateTime           = "2006-01-02 15:04:05:000"
@@ -118,6 +119,13 @@ func NullTimeConverter(b string) reflect.Value {
 	}
 	//now check if it was a datetime
 	v, err = time.Parse(HTMLFormDateTime, b)
+	if err == nil {
+		decodedTime.Time = v
+		decodedTime.Valid = true
+		return reflect.ValueOf(decodedTime)
+	}
+	//now check if it was a date
+	v, err = time.Parse(NZHTMLFormDateTime, b)
 	if err == nil {
 		decodedTime.Time = v
 		decodedTime.Valid = true
