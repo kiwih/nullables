@@ -16,7 +16,6 @@ import (
 const (
 	HTMLFormTime         = "15:04"
 	HTMLFormDate         = "2006-01-02"
-	HTMLFormDateTime     = "2006-01-02 3:04 PM"
 	NZHTMLFormDate       = "02-01-2006"
 	NZHTMLFormDateTime   = "02-01-2006 3:04 PM"
 	DBTime               = "15:04:05:000"
@@ -95,7 +94,7 @@ func (nt NullTime) GetHTMLDateTime() string {
 //It will first try parse it as a Time, if that does not work it will parse it as a Date, if that doesn't work it will parse it as a datetime
 func NullTimeConverter(b string) reflect.Value {
 	decodedTime := NullTime{}
-	//first check if we have been given a time
+	//Try ALL the formats we think the data might be
 	v, err := time.Parse(HTMLFormTime, b)
 	if err == nil {
 		v := v.AddDate(1, 0, 0) //Nasty hack so that the year is not 0000, which is valid in Go but not MsSQL
@@ -103,14 +102,12 @@ func NullTimeConverter(b string) reflect.Value {
 		decodedTime.Valid = true
 		return reflect.ValueOf(decodedTime)
 	}
-	//now check if it was a date
 	v, err = time.Parse(NZHTMLFormDate, b)
 	if err == nil {
 		decodedTime.Time = v
 		decodedTime.Valid = true
 		return reflect.ValueOf(decodedTime)
 	}
-
 	v, err = time.Parse(HTMLFormDate, b)
 	if err == nil {
 		decodedTime.Time = v
@@ -124,7 +121,7 @@ func NullTimeConverter(b string) reflect.Value {
 		decodedTime.Valid = true
 		return reflect.ValueOf(decodedTime)
 	}
-	v, err = time.Parse(HTMLFormDateTime, b)
+	v, err = time.Parse(NZHTMLFormDateTime, b)
 	if err == nil {
 		decodedTime.Time = v
 		decodedTime.Valid = true
