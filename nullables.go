@@ -14,14 +14,15 @@ import (
 )
 
 const (
-	HTMLFormTime         = "15:04"
-	HTMLFormDate         = "2006-01-02"
-	NZHTMLFormDate       = "02-01-2006"
-	NZHTMLFormDateTime   = "02-01-2006 3:04 PM"
-	DBTime               = "15:04:05:000"
-	HTMLFormDateTime24Hr = "2006-01-02 15:04"
-	DBDateTime           = "2006-01-02 15:04:05:000"
-	TimeWithSeconds      = "15:04:05"
+	HTMLFormTime24Hr       = "15:04"
+	HTMLFormTime12Hr       = "3:04 PM"
+	HTMLFormDate           = "2006-01-02"
+	NZHTMLFormDate         = "02-01-2006"
+	NZHTMLFormDateTime12Hr = "02-01-2006 3:04 PM"
+	DBTime                 = "15:04:05:000"
+	HTMLFormDateTime24Hr   = "2006-01-02 15:04"
+	DBDateTime             = "2006-01-02 15:04:05:000"
+	TimeWithSeconds        = "15:04:05"
 )
 
 type NullTime struct {
@@ -85,7 +86,7 @@ func (nt *NullTime) UnmarshalJSON(b []byte) error {
 
 func (nt NullTime) GetHTMLDateTime() string {
 	if nt.Valid {
-		return nt.Time.Format(NZHTMLFormDateTime)
+		return nt.Time.Format(NZHTMLFormDateTime12Hr)
 	}
 	return "N/A"
 }
@@ -95,13 +96,22 @@ func (nt NullTime) GetHTMLDateTime() string {
 func NullTimeConverter(b string) reflect.Value {
 	decodedTime := NullTime{}
 	//Try ALL the formats we think the data might be
-	v, err := time.Parse(HTMLFormTime, b)
+	//Is it a time?
+	v, err := time.Parse(HTMLFormTime12Hr, b)
 	if err == nil {
 		v := v.AddDate(1, 0, 0) //Nasty hack so that the year is not 0000, which is valid in Go but not MsSQL
 		decodedTime.Time = v
 		decodedTime.Valid = true
 		return reflect.ValueOf(decodedTime)
 	}
+	v, err = time.Parse(HTMLFormTime24Hr, b)
+	if err == nil {
+		v := v.AddDate(1, 0, 0) //Nasty hack so that the year is not 0000, which is valid in Go but not MsSQL
+		decodedTime.Time = v
+		decodedTime.Valid = true
+		return reflect.ValueOf(decodedTime)
+	}
+	//Is it a date?
 	v, err = time.Parse(NZHTMLFormDate, b)
 	if err == nil {
 		decodedTime.Time = v
@@ -115,7 +125,9 @@ func NullTimeConverter(b string) reflect.Value {
 		return reflect.ValueOf(decodedTime)
 	}
 
-	v, err = time.Parse(NZHTMLFormDateTime, b)
+	//Is it a date time?
+
+	v, err = time.Parse(NZHTMLFormDateTime12Hr, b)
 	if err == nil {
 		decodedTime.Time = v
 		decodedTime.Valid = true
