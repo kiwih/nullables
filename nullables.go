@@ -85,7 +85,7 @@ func (nt *NullTime) UnmarshalJSON(b []byte) error {
 
 func (nt NullTime) GetHTMLDateTime() string {
 	if nt.Valid {
-		return nt.Time.Format(HTMLFormDateTime)
+		return nt.Time.Format(NZHTMLFormDateTime)
 	}
 	return "N/A"
 }
@@ -114,13 +114,7 @@ func NullTimeConverter(b string) reflect.Value {
 		decodedTime.Valid = true
 		return reflect.ValueOf(decodedTime)
 	}
-	//now check if it was a datetime
-	v, err = time.Parse(NZHTMLFormDateTime, b)
-	if err == nil {
-		decodedTime.Time = v
-		decodedTime.Valid = true
-		return reflect.ValueOf(decodedTime)
-	}
+
 	v, err = time.Parse(NZHTMLFormDateTime, b)
 	if err == nil {
 		decodedTime.Time = v
